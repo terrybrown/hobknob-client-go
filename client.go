@@ -55,19 +55,26 @@ func (c *Client) schedule() {
 	}()
 }
 
-func parseValue(val string) bool {
+func parseValue(val string) (bool, bool) {
 	if val == "true" {
-		return true
+		return true, true
 	}
 
-	return false
+	if val == "false" {
+		return false, true
+	}
+
+	return false, false
 }
 
 func parseResponse(resp *etcd.Response) map[string]bool {
 	m := make(map[string]bool)
 	for _, element := range resp.Node.Nodes {
 		ks := strings.Split(element.Key, "/")
-		m[ks[len(ks)-1]] = parseValue(element.Value)
+		val, ok := parseValue(element.Value)
+		if ok {
+			m[ks[len(ks)-1]] = val
+		}
 	}
 	return m
 }

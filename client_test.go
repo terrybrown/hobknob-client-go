@@ -72,6 +72,24 @@ func TestGetNonExistentToggle(t *testing.T) {
 	}
 }
 
+func TestGetBadToggle(t *testing.T) {
+	c, err := Setup()
+
+	if err != nil {
+		t.Error(err)
+	}
+
+	toggle, exists := c.Get("badtoggle")
+
+	if toggle != false {
+		t.Fatalf("expecting toggle 'badtoggle' to have value 'false' actual: '%v'", toggle)
+	}
+
+	if exists != false {
+		t.Fatalf("expecting exists 'badtoggle' to have value 'false' actual: '%v'", exists)
+	}
+}
+
 func TestGetOrDefault(t *testing.T) {
 	c, err := Setup()
 
