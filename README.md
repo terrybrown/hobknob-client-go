@@ -36,10 +36,17 @@ func main() {
 
 	go func() {
 		for {
-			err := <-c.OnUpdate
-			fmt.Printf("update elapsed, err: %v\n", err)
+			diffs := <-c.OnUpdate
+			fmt.Printf("update elapsed, diffs: %v\n", diffs)
 		}
 	}()
+
+  go func() {
+    for {
+      err := <-c.OnError
+      fmt.Printf("error: %v\n", err)
+    }
+  }()
 
 	ticker := time.NewTicker(time.Millisecond * 500)
 	go func() {
@@ -78,4 +85,13 @@ returns (value bool, exists bool)
 returns the value of the toggle, or the supplied default if it didn't exist
 
 ### client.OnUpdate chan string
-a channel which gets invoked every time an update happens. Contains an error or nil
+a channel which gets published every time an update happens. Contains an array of Diffs for toggles that changed in the last update
+
+Diff {
+  name string
+  old bool
+  new bool
+}
+
+### client.OnError chan error
+a channel for reading errors which might occur.

@@ -7,11 +7,19 @@ import (
 	"github.com/coreos/go-etcd/etcd"
 )
 
+// Diff contains toggle diffs
+type Diff struct {
+	name string
+	old  bool
+	new  bool
+}
+
 // Client : the client
 type Client struct {
 	CacheInterval time.Duration
 	AppName       string
-	OnUpdate      chan error
+	OnUpdate      chan []Diff
+	OnError       chan error
 	etcd          *etcd.Client
 	cache         map[string]bool
 	ticker        *time.Ticker
@@ -24,7 +32,8 @@ func NewClient(etcdHosts []string, appName string, cacheInterval int) *Client {
 		etcd:          etcd.NewClient(etcdHosts),
 		CacheInterval: time.Duration(cacheInterval) * time.Second,
 		AppName:       appName,
-		OnUpdate:      make(chan error),
+		OnUpdate:      make(chan []Diff),
+		OnError:       make(chan error),
 	}
 
 	return client
@@ -32,7 +41,7 @@ func NewClient(etcdHosts []string, appName string, cacheInterval int) *Client {
 
 // Initialise the client
 func (c *Client) Initialise() error {
-	err := c.update()
+	_, err := c.update()
 	if err == nil {
 		c.schedule()
 	}
@@ -44,7 +53,13 @@ func (c *Client) schedule() {
 	go func() {
 		for {
 			<-c.ticker.C
-			c.OnUpdate <- c.update()
+			diffs, err := c.update()
+			if err != nil {
+				c.OnError <- err
+			}
+			if diffs != nil {
+				c.OnUpdate <- diffs
+			}
 		}
 	}()
 }
@@ -73,14 +88,32 @@ func parseResponse(resp *etcd.Response) map[string]bool {
 	return m
 }
 
-func (c *Client) update() error {
-	resp, err := c.etcd.Get("/v1/toggles/"+c.AppName, false, true)
-	if err != nil {
-		return err
+func diffs(previous map[string]bool, next map[string]bool) []Diff {
+	diffs := []Diff{}
+
+	for k, v := range next {
+		if v != previous[k] {
+			diffs = append(diffs, Diff{
+				name: k,
+				old:  previous[k],
+				new:  v,
+			})
+		}
 	}
 
-	c.cache = parseResponse(resp)
-	return nil
+	return diffs
+}
+
+func (c *Client) update() ([]Diff, error) {
+	resp, err := c.etcd.Get("/v1/toggles/"+c.AppName, false, true)
+	if err != nil {
+		return nil, err
+	}
+
+	toggles := parseResponse(resp)
+	diffs := diffs(c.cache, toggles)
+	c.cache = toggles
+	return diffs, nil
 }
 
 // Get a toggle state from the cache

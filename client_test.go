@@ -5,15 +5,48 @@ import (
 	"time"
 )
 
-func Setup() (*Client, error) {
+func Setup(t *testing.T) (*Client, error) {
 	c := NewClient([]string{"http://127.0.0.1:4001"}, "testApp", 1)
 	err := c.Initialise()
+
+	go func() {
+		for {
+			err := <-c.OnError
+			t.Error(err)
+		}
+	}()
+
+	go func() {
+		for {
+			<-c.OnUpdate
+		}
+	}()
+
+	return c, err
+}
+
+func SetupBench(b *testing.B) (*Client, error) {
+	c := NewClient([]string{"http://127.0.0.1:4001"}, "testApp", 1)
+	err := c.Initialise()
+
+	go func() {
+		for {
+			err := <-c.OnError
+			b.Error(err)
+		}
+	}()
+
+	go func() {
+		for {
+			<-c.OnUpdate
+		}
+	}()
 
 	return c, err
 }
 
 func TestNew(t *testing.T) {
-	c, _ := Setup()
+	c, _ := Setup(t)
 
 	if c == nil {
 		t.Fatalf("client was null")
@@ -29,7 +62,7 @@ func TestNew(t *testing.T) {
 }
 
 func TestInitialise(t *testing.T) {
-	_, err := Setup()
+	_, err := Setup(t)
 
 	if err != nil {
 		t.Error(err)
@@ -37,7 +70,7 @@ func TestInitialise(t *testing.T) {
 }
 
 func TestGet(t *testing.T) {
-	c, err := Setup()
+	c, err := Setup(t)
 
 	if err != nil {
 		t.Error(err)
@@ -55,7 +88,7 @@ func TestGet(t *testing.T) {
 }
 
 func TestGetNonExistentToggle(t *testing.T) {
-	c, err := Setup()
+	c, err := Setup(t)
 
 	if err != nil {
 		t.Error(err)
@@ -73,7 +106,7 @@ func TestGetNonExistentToggle(t *testing.T) {
 }
 
 func TestGetBadToggle(t *testing.T) {
-	c, err := Setup()
+	c, err := Setup(t)
 
 	if err != nil {
 		t.Error(err)
@@ -91,7 +124,7 @@ func TestGetBadToggle(t *testing.T) {
 }
 
 func TestGetOrDefault(t *testing.T) {
-	c, err := Setup()
+	c, err := Setup(t)
 
 	if err != nil {
 		t.Error(err)
@@ -111,21 +144,21 @@ func TestGetOrDefault(t *testing.T) {
 }
 
 func TestSchedule(t *testing.T) {
-	c, err := Setup()
+	c, err := Setup(t)
 
 	if err != nil {
 		t.Error(err)
 	}
 
-	updateError := <-c.OnUpdate
+	diffs := <-c.OnUpdate
 
-	if updateError != nil {
-		t.Fatalf("Got an error when updating %v", updateError)
+	if diffs == nil {
+		t.Fatalf("Got a nil update value: %v, was expecting: []Diffs{}", diffs)
 	}
 }
 
 func BenchmarkGet(b *testing.B) {
-	c, err := Setup()
+	c, err := SetupBench(b)
 
 	if err != nil {
 		b.Error(err)
@@ -137,7 +170,7 @@ func BenchmarkGet(b *testing.B) {
 }
 
 func BenchmarkGetOrDefault(b *testing.B) {
-	c, err := Setup()
+	c, err := SetupBench(b)
 
 	if err != nil {
 		b.Error(err)
