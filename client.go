@@ -14,6 +14,7 @@ type Client struct {
 	OnUpdate      chan error
 	etcd          *etcd.Client
 	cache         map[string]bool
+	ticker        *time.Ticker
 }
 
 // NewClient creates a new instance of the client and returns it
@@ -39,18 +40,11 @@ func (c *Client) Initialise() error {
 }
 
 func (c *Client) schedule() {
-	ticker := time.NewTicker(c.CacheInterval)
-	quit := make(chan struct{})
+	c.ticker = time.NewTicker(c.CacheInterval)
 	go func() {
 		for {
-			select {
-			case <-ticker.C:
-				c.OnUpdate <- c.update()
-				return
-			case <-quit:
-				ticker.Stop()
-				return
-			}
+			<-c.ticker.C
+			c.OnUpdate <- c.update()
 		}
 	}()
 }
