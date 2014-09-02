@@ -5,12 +5,15 @@ import (
 	"time"
 )
 
-func Setup() *Client {
-	return NewClient([]string{"http://127.0.0.1:4001"}, "testApp", 1)
+func Setup() (*Client, error) {
+	c := NewClient([]string{"http://127.0.0.1:4001"}, "testApp", 1)
+	err := c.Initialise()
+
+	return c, err
 }
 
 func TestNew(t *testing.T) {
-	c := Setup()
+	c, _ := Setup()
 
 	if c == nil {
 		t.Fatalf("client was null")
@@ -26,8 +29,7 @@ func TestNew(t *testing.T) {
 }
 
 func TestInitialise(t *testing.T) {
-	c := Setup()
-	err := c.Initialise()
+	_, err := Setup()
 
 	if err != nil {
 		t.Error(err)
@@ -35,8 +37,7 @@ func TestInitialise(t *testing.T) {
 }
 
 func TestGet(t *testing.T) {
-	c := Setup()
-	err := c.Initialise()
+	c, err := Setup()
 
 	if err != nil {
 		t.Error(err)
@@ -54,8 +55,7 @@ func TestGet(t *testing.T) {
 }
 
 func TestGetNonExistentToggle(t *testing.T) {
-	c := Setup()
-	err := c.Initialise()
+	c, err := Setup()
 
 	if err != nil {
 		t.Error(err)
@@ -73,8 +73,7 @@ func TestGetNonExistentToggle(t *testing.T) {
 }
 
 func TestGetOrDefault(t *testing.T) {
-	c := Setup()
-	err := c.Initialise()
+	c, err := Setup()
 
 	if err != nil {
 		t.Error(err)
@@ -94,8 +93,7 @@ func TestGetOrDefault(t *testing.T) {
 }
 
 func TestSchedule(t *testing.T) {
-	c := Setup()
-	err := c.Initialise()
+	c, err := Setup()
 
 	if err != nil {
 		t.Error(err)
@@ -109,8 +107,7 @@ func TestSchedule(t *testing.T) {
 }
 
 func BenchmarkGet(b *testing.B) {
-	c := Setup()
-	err := c.Initialise()
+	c, err := Setup()
 
 	if err != nil {
 		b.Error(err)
@@ -122,8 +119,7 @@ func BenchmarkGet(b *testing.B) {
 }
 
 func BenchmarkGetOrDefault(b *testing.B) {
-	c := Setup()
-	err := c.Initialise()
+	c, err := Setup()
 
 	if err != nil {
 		b.Error(err)
