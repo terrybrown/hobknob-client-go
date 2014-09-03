@@ -1,9 +1,25 @@
 package hobknob
 
 import (
+	"fmt"
+	"net/http"
 	"testing"
 	"time"
 )
+
+func handler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("content-type", "application/json")
+	fmt.Fprintf(w, "{\"action\":\"get\",\"node\":{\"key\":\"/v1/toggles/testApp\",\"dir\":true,\"nodes\":[{\"key\":\"/v1/toggles/testApp/mytoggle\",\"value\":\"true\",\"modifiedIndex\":78,\"createdIndex\":78}],\"modifiedIndex\":75,\"createdIndex\":75}}")
+}
+
+func initServer() {
+	http.HandleFunc("/", handler)
+	http.ListenAndServe(":4001", nil)
+}
+
+func TestServer(t *testing.T) {
+	go initServer()
+}
 
 func Setup(t *testing.T) (*Client, error) {
 	c := NewClient([]string{"http://127.0.0.1:4001"}, "testApp", 1)
