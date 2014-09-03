@@ -90,11 +90,13 @@ returns the value of the toggle, or the supplied default if it didn't exist
 ### client.OnUpdate chan []Diff
 a channel which gets published every time an update happens. Contains an array of Diffs for toggles that changed in the last update
 
+```go
 Diff {
   name string
   old bool
   new bool
 }
+```
 
 ### client.OnError chan error
 a channel for reading errors which might occur.
