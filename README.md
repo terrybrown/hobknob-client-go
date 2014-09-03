@@ -3,6 +3,8 @@ hobknob-client-go
 
 Client for hobknob written in golang
 
+[![Build Status](https://travis-ci.org/opentable/go-hobknob.png?branch=master)]
+
 Installation:
 
 ```shell
