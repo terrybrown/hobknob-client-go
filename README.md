@@ -86,7 +86,7 @@ returns (value bool, exists bool)
 ### client.GetOrDefault(toggle string, defaultVal bool)
 returns the value of the toggle, or the supplied default if it didn't exist
 
-### client.OnUpdate chan string
+### client.OnUpdate chan []Diff
 a channel which gets published every time an update happens. Contains an array of Diffs for toggles that changed in the last update
 
 Diff {
