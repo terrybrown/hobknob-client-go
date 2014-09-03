@@ -74,6 +74,7 @@ params:
 - etcdHosts // array of hosts
 - appName // identifier for this app to find its toggles
 - cacheInterval // number of seconds between updates
+
 returns a new client
 
 ### client.Initialise()
