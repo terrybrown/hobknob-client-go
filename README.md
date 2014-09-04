@@ -23,7 +23,7 @@ import (
 	"fmt"
 	"time"
 
-	hobknob "github.com/opentable/go-hobknob"
+	hobknob "github.com/opentable/hobknob-client-go"
 )
 
 func main() {
