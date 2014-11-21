@@ -43,18 +43,21 @@ func main() {
 		}
 	}()
 
-  go func() {
-    for {
-      err := <-c.OnError
-      fmt.Printf("error: %v\n", err)
-    }
-  }()
+    go func() {
+        for {
+            err := <-c.OnError
+            fmt.Printf("error: %v\n", err)
+        }
+    }()
 
 	ticker := time.NewTicker(time.Millisecond * 500)
 	go func() {
 		for t := range ticker.C {
-			val, _ := c.Get("mytoggle")
-			fmt.Printf("%v testApp/mytoggle: %v\n", t, val)
+			val, _ := c.Get("myFeature")
+			fmt.Printf("%v testApp/myFeature: %v\n", t, val)
+
+			val, _ := c.GetMulti("domainFeature", "com")
+			fmt.Printf("%v testApp/domainFeature/com: %v\n", t, val)
 		}
 	}()
 
@@ -81,11 +84,17 @@ returns a new client
 run once to initialise the client you just created
 returns an error or nil
 
-### client.Get(toggle string)
-returns (value bool, exists bool)
+### client.Get(feature string)
+returns (value bool, exists bool) for the simple feature toggle `appName/feature`
 
-### client.GetOrDefault(toggle string, defaultVal bool)
-returns the value of the toggle, or the supplied default if it didn't exist
+### client.GetMulti(feature string, toggle string)
+returns (value bool, exists bool) for the multi feature toggle `appName/feature/toggle`
+
+### client.GetOrDefault(feature string, defaultVal bool)
+returns the value of the simple feature toggle `appName/feature`, or the supplied default if it didn't exist
+
+### client.GetOrDefaultMulti(feature string, toggle string, defaultVal bool)
+returns the value of the multi feature toggle `appName/feature/toggle`, or the supplied default if it didn't exist
 
 ### client.OnUpdate chan []Diff
 a channel which gets published every time an update happens. Contains an array of Diffs for toggles that changed in the last update

@@ -1,0 +1,55 @@
+{
+    "action":"get",
+    "node":{
+        "key":"/v1/toggles/testApp",
+        "dir":true,
+        "nodes":[
+            {
+                "key": "/v1/toggles/testApp/mytoggle",
+                "value":"true",
+                "modifiedIndex":78,
+                "createdIndex":78
+            },
+            {
+                "key": "/v1/toggles/testApp/badtoggle",
+                "value":"monkey",
+                "modifiedIndex":78,
+                "createdIndex":78
+            },
+            {
+                "key": "/v1/toggles/testApp/multi",
+                "dir": true,
+                "nodes": [
+                    {
+                        "key": "/v1/toggles/testApp/multi/@meta",
+                        "value": "ignored",
+                        "modifiedIndex":78,
+                        "createdIndex":78
+                    },
+                    {
+                        "key": "/v1/toggles/testApp/multi/toggle1",
+                        "value": "true",
+                        "modifiedIndex":78,
+                        "createdIndex":78
+                    },
+                    {
+                        "key": "/v1/toggles/testApp/multi/toggle2",
+                        "value": "false",
+                        "modifiedIndex":78,
+                        "createdIndex":78
+                    },
+                    {
+                        "key": "/v1/toggles/testApp/multi/badtoggle",
+                        "value": "monkey",
+                        "modifiedIndex":78,
+                        "createdIndex":78
+                    }
+                ],
+                "modifiedIndex":78,
+                "createdIndex":78
+            }
+        ],
+        "modifiedIndex":75,
+        "createdIndex":75
+    }
+}

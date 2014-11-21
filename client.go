@@ -1,7 +1,7 @@
 package hobknob
 
 import (
-	"strings"
+	"fmt"
 	"time"
 
 	"github.com/coreos/go-etcd/etcd"
@@ -76,13 +76,28 @@ func parseValue(val string) (bool, bool) {
 	return false, false
 }
 
+func parseMultiToggleFeature(m map[string]bool, featureNode *etcd.Node) {
+	metaDataKey := featureNode.Key + "/@meta"
+	for _, toggleNode := range featureNode.Nodes {
+		if toggleNode.Key != metaDataKey {
+			val, ok := parseValue(toggleNode.Value)
+			if ok {
+				m[toggleNode.Key] = val
+			}
+		}
+	}
+}
+
 func parseResponse(resp *etcd.Response) map[string]bool {
 	m := make(map[string]bool)
 	for _, element := range resp.Node.Nodes {
-		ks := strings.Split(element.Key, "/")
-		val, ok := parseValue(element.Value)
-		if ok {
-			m[ks[len(ks)-1]] = val
+		if element.Dir {
+			parseMultiToggleFeature(m, element)
+		} else {
+			val, ok := parseValue(element.Value)
+			if ok {
+				m[element.Key] = val
+			}
 		}
 	}
 	return m
@@ -116,15 +131,36 @@ func (c *Client) update() ([]Diff, error) {
 	return diffs, nil
 }
 
-// Get a toggle state from the cache
-func (c *Client) Get(toggle string) (bool, bool) {
-	val, ok := c.cache[toggle]
+func getFeatureToggleKey(appName string, feature string, toggle string) string {
+	if toggle == "" {
+		return fmt.Sprintf("/v1/toggles/%v/%v", appName, feature)
+	}
+	return fmt.Sprintf("/v1/toggles/%v/%v/%v", appName, feature, toggle)
+}
+
+// Get a simple toggle state from the cache
+func (c *Client) Get(feature string) (bool, bool) {
+	val, ok := c.cache[getFeatureToggleKey(c.AppName, feature, "")]
 	return val, ok
 }
 
-// GetOrDefault get a toggle and supply a default value
-func (c *Client) GetOrDefault(toggle string, defaultVal bool) bool {
-	if val, ok := c.cache[toggle]; ok {
+// Get a multi toggle state from the cache
+func (c *Client) GetMulti(feature string, toggle string) (bool, bool) {
+	val, ok := c.cache[getFeatureToggleKey(c.AppName, feature, toggle)]
+	return val, ok
+}
+
+// GetOrDefault get a simple toggle and supply a default value
+func (c *Client) GetOrDefault(feature string, defaultVal bool) bool {
+	if val, ok := c.cache[getFeatureToggleKey(c.AppName, feature, "")]; ok {
+		return val
+	}
+	return defaultVal
+}
+
+// GetOrDefault get a multi toggle and supply a default value
+func (c *Client) GetOrDefaultMulti(feature string, toggle string, defaultVal bool) bool {
+	if val, ok := c.cache[getFeatureToggleKey(c.AppName, feature, toggle)]; ok {
 		return val
 	}
 	return defaultVal

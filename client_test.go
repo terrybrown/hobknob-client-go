@@ -2,14 +2,23 @@ package hobknob
 
 import (
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"testing"
 	"time"
 )
 
+func readTestResponseFromJsonFile() string {
+	fileBytes, err := ioutil.ReadFile("testEtcdResponse.json")
+	if err != nil {
+		panic(err)
+	}
+	return string(fileBytes)
+}
+
 func handler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("content-type", "application/json")
-	fmt.Fprintf(w, "{\"action\":\"get\",\"node\":{\"key\":\"/v1/toggles/testApp\",\"dir\":true,\"nodes\":[{\"key\":\"/v1/toggles/testApp/mytoggle\",\"value\":\"true\",\"modifiedIndex\":78,\"createdIndex\":78}],\"modifiedIndex\":75,\"createdIndex\":75}}")
+	fmt.Fprintf(w, readTestResponseFromJsonFile())
 }
 
 func initServer() {
@@ -156,6 +165,77 @@ func TestGetOrDefault(t *testing.T) {
 
 	if toggle2 != true {
 		t.Fatalf("expecting toggle 'unknowntoggle' to have value 'true' actual: '%v'", toggle2)
+	}
+}
+
+func TestGetMulti(t *testing.T) {
+	c, err := Setup(t)
+
+	if err != nil {
+		t.Error(err)
+	}
+
+	toggle, exists := c.GetMulti("multi", "toggle1")
+
+	if toggle != true {
+		t.Fatalf("expecting toggle 'multi/toggle1' to have value 'true' actual: '%v'", toggle)
+	}
+
+	if exists != true {
+		t.Fatalf("expecting exists 'multi/toggle1' to have value 'true' actual: '%v'", toggle)
+	}
+}
+
+func TestGetMultiWhenFeatureDoesNotExist(t *testing.T) {
+	c, err := Setup(t)
+
+	if err != nil {
+		t.Error(err)
+	}
+
+	toggle, exists := c.GetMulti("unkknownFeature", "toggle1")
+
+	if toggle != false {
+		t.Fatalf("expecting toggle 'unknownFeature/toggle1' to have value 'false' actual: '%v'", toggle)
+	}
+
+	if exists != false {
+		t.Fatalf("expecting exists 'unknownFeature/toggle1' to have value 'false' actual: '%v'", exists)
+	}
+}
+
+func TestGetMultiWhenFeatureToggleDoesNotExist(t *testing.T) {
+	c, err := Setup(t)
+
+	if err != nil {
+		t.Error(err)
+	}
+
+	toggle, exists := c.GetMulti("multi", "unknownToggle")
+
+	if toggle != false {
+		t.Fatalf("expecting toggle 'multi/unknowntoggle' to have value 'false' actual: '%v'", toggle)
+	}
+
+	if exists != false {
+		t.Fatalf("expecting exists 'multi/unknowntoggle' to have value 'false' actual: '%v'", exists)
+	}
+}
+func TestGetMultiBadToggle(t *testing.T) {
+	c, err := Setup(t)
+
+	if err != nil {
+		t.Error(err)
+	}
+
+	toggle, exists := c.GetMulti("multi", "badtoggle")
+
+	if toggle != false {
+		t.Fatalf("expecting toggle 'multi/badtoggle' to have value 'false' actual: '%v'", toggle)
+	}
+
+	if exists != false {
+		t.Fatalf("expecting exists 'multi/badtoggle' to have value 'false' actual: '%v'", exists)
 	}
 }
 
