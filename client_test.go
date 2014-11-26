@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-func readTestResponseFromJsonFile() string {
+func readTestResponseFromJSONFile() string {
 	fileBytes, err := ioutil.ReadFile("testEtcdResponse.json")
 	if err != nil {
 		panic(err)
@@ -18,7 +18,7 @@ func readTestResponseFromJsonFile() string {
 
 func handler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("content-type", "application/json")
-	fmt.Fprintf(w, readTestResponseFromJsonFile())
+	fmt.Fprintf(w, readTestResponseFromJSONFile())
 }
 
 func initServer() {
@@ -221,6 +221,7 @@ func TestGetMultiWhenFeatureToggleDoesNotExist(t *testing.T) {
 		t.Fatalf("expecting exists 'multi/unknowntoggle' to have value 'false' actual: '%v'", exists)
 	}
 }
+
 func TestGetMultiBadToggle(t *testing.T) {
 	c, err := Setup(t)
 
@@ -265,6 +266,18 @@ func BenchmarkGet(b *testing.B) {
 	}
 }
 
+func BenchmarkGetMulti(b *testing.B) {
+	c, err := SetupBench(b)
+
+	if err != nil {
+		b.Error(err)
+	}
+
+	for i := 0; i < b.N; i++ {
+		c.GetMulti("mytoggle", "multi")
+	}
+}
+
 func BenchmarkGetOrDefault(b *testing.B) {
 	c, err := SetupBench(b)
 
@@ -274,5 +287,17 @@ func BenchmarkGetOrDefault(b *testing.B) {
 
 	for i := 0; i < b.N; i++ {
 		c.GetOrDefault("mytoggle", true)
+	}
+}
+
+func BenchmarkGetOrDefaultMulti(b *testing.B) {
+	c, err := SetupBench(b)
+
+	if err != nil {
+		b.Error(err)
+	}
+
+	for i := 0; i < b.N; i++ {
+		c.GetOrDefaultMulti("mytoggle", "multi", true)
 	}
 }

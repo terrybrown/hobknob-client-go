@@ -138,19 +138,19 @@ func getFeatureToggleKey(appName string, feature string, toggle string) string {
 	return fmt.Sprintf("/v1/toggles/%v/%v/%v", appName, feature, toggle)
 }
 
-// Get a simple toggle state from the cache
+//Get get a simple toggle state from the cache
 func (c *Client) Get(feature string) (bool, bool) {
 	val, ok := c.cache[getFeatureToggleKey(c.AppName, feature, "")]
 	return val, ok
 }
 
-// Get a multi toggle state from the cache
+//GetMulti get a multi toggle state from the cache
 func (c *Client) GetMulti(feature string, toggle string) (bool, bool) {
 	val, ok := c.cache[getFeatureToggleKey(c.AppName, feature, toggle)]
 	return val, ok
 }
 
-// GetOrDefault get a simple toggle and supply a default value
+//GetOrDefault get a simple toggle and supply a default value
 func (c *Client) GetOrDefault(feature string, defaultVal bool) bool {
 	if val, ok := c.cache[getFeatureToggleKey(c.AppName, feature, "")]; ok {
 		return val
@@ -158,7 +158,7 @@ func (c *Client) GetOrDefault(feature string, defaultVal bool) bool {
 	return defaultVal
 }
 
-// GetOrDefault get a multi toggle and supply a default value
+//GetOrDefaultMulti get a multi toggle and supply a default value
 func (c *Client) GetOrDefaultMulti(feature string, toggle string, defaultVal bool) bool {
 	if val, ok := c.cache[getFeatureToggleKey(c.AppName, feature, toggle)]; ok {
 		return val
